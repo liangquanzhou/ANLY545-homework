@@ -1,0 +1,87 @@
+---
+title: "ANLY 545 hw2"
+author: "Lianguan Zhou"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load pckgs, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(magrittr)
+library(vcd)
+library(vcdExtra)
+library(HistData)
+```
+
+## Exercise 3.1
+
+```{r}
+arb <- HistData::Arbuthnot
+
+# (a)
+plot(Ratio ~ Year, data = arb)
+```
+
+From the result we can see that `Ratio` seems like has a decreasing tendency over `Year`. To display the tendency for more male birth, 
+
+```{r}
+# (b)
+plot(Total ~ Year, data = arb)
+```
+
+The `Total` is the total christenings in London (000s), so it should closely related toe the birth. We can see that `Total` is significant decreasing between 1640 to 1660, and then had a significant increasing between 1660 to 1680, and then maintained in a relative high level. This indicates that the population birth had a fluctuation between 1640 to 1680.
+
+## Exercise 3.4
+
+```{r}
+sax <- vcd::Saxony
+
+# (a)
+binorm_fit <- goodfit(sax, type = "binomial", par = list(size = 12, prob = 0.5))
+
+# chi-square statistic
+chi_sq <- sum((binorm_fit$observed - binorm_fit$fitted)^2 / binorm_fit$fitted)
+# df is 12
+df <- length(sax) - 1
+
+# the ratio of chi_sq and df
+chi_sq / 12
+```
+
+So we can see that the ratio is relative high, this may incicates that this may not be a good fit. Actually we can calculate the p value fo the goodness of the fit test: 
+
+```{r}
+pchisq(q = chi_sq, df = 12, lower.tail = FALSE)
+```
+
+This confirms the conclution.
+
+The MLE of binominal distribution is $\hat{p} = x/n$, so we can calculate the $\hat{p}$.
+
+```{r}
+# (b)
+# calculate the mle of p
+nums = as.numeric(names(sax))
+p_mle <- sum(nums * sax) / (12 * sum(sax))
+
+ml_fit <- goodfit(sax, type = "binomial", par = list(size = 12, prob = p_mle))
+# ml_fit <- goodfit(sax, type = "binomial", method = "ML") # also can directly set method = "ML"
+
+# goodness of fit test
+summary(ml_fit)
+```
+
+Better than use $p = 1/2$, but p value is still low. But considering the sample size, it's ok to have a low p value. 
+
+```{r}
+# (c)
+plot(binorm_fit)
+plot(ml_fit)
+```
+
